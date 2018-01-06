@@ -2,12 +2,13 @@ const qwerty = document.getElementById('qwerty');
 const phrase = document.getElementById('phrase');
 let missed   = 0;
 
-const startButton = document.querySelector('.btn__reset');
+const resetButton = document.querySelector('.btn__reset');
 
 // Hide the start screen overlay
-startButton.addEventListener('click', function() {
+resetButton.addEventListener('click', function() {
   const overlay = document.getElementById('overlay');
   overlay.style.display = 'none';
+  resetPhrase();
 });
 
 // Create array that contains at least 5 different phrases as strings.
@@ -39,33 +40,27 @@ function addPhraseToDisplay(arr) {
     const li = document.createElement('li');
     li.textContent = arr[i];
     if (arr[i] != ' ') {
-      li.classList.add('letter');
+      li.className = 'letter';
+    } else {
+      li.className = 'space';
     }
     ul.appendChild(li);
   }
 }
 
-const phraseArray = getRandomPhraseArray(phrases);
-addPhraseToDisplay(phraseArray);
-
 function checkLetter(button) {
   const letters = phrase.querySelectorAll('.letter');
-  // console.log('button ', button.toUpperCase());
+  let matching = null;
 
   for (let i = 0; i < letters.length; i += 1) {
-    // console.log('Const letter: ', letter);
-    // console.log(letters[i].innerText.toUpperCase());
     const letter = letters[i].innerText.toUpperCase();
-    console.log(letter);
 
     if (button.toUpperCase() === letter) {
       letters[i].classList.add('show');
-      console.log('true');
-    } else {
-      return null;
-      console.log('false');
+      matching = letters[i].innerText;
     }
   }
+  return matching;
 }
 
 qwerty.addEventListener('click', function(e) {
@@ -74,5 +69,61 @@ qwerty.addEventListener('click', function(e) {
     letter.classList.add('chosen');
     letter.disabled = true; // disable button state
     const letterFound = checkLetter(e.target.textContent);
+    if (letterFound === null) {
+      const tries = scoreboard.querySelectorAll('.tries')[0];
+      tries.parentNode.removeChild(tries);
+      missed += 1;
+    }
+    checkWin();
   }
 });
+
+function checkWin() {
+  const show = document.querySelectorAll('.show');
+  const letter = document.querySelectorAll('.letter');
+  const overlay = document.getElementById('overlay');
+  const title = overlay.querySelector('.title');
+  if (show.length === letter.length) {
+    title.innerText = 'Winner!';
+    overlay.setAttribute('class', 'win');
+    overlay.style.display = '';
+  } else if (missed >= 5) {
+    title.innerText = 'Better luck next time';
+    overlay.setAttribute('class', 'lose');
+    overlay.style.display = '';
+  }
+}
+
+function resetPhrase() {
+  // Clear qwerty
+  const letters = qwerty.querySelectorAll('.chosen');
+  for (let i = 0; i < letters.length; i += 1) {
+    letters[i].setAttribute('class', '');
+    letters[i].disabled = 'false';
+  }
+
+  // Clear phrase
+  const ul = phrase.getElementsByTagName('ul')[0];
+  ul.innerHTML = '';
+
+  // Get new phrase
+  const phraseArray = getRandomPhraseArray(phrases);
+  addPhraseToDisplay(phraseArray);
+
+  // Reset tries
+  const tries = scoreboard.querySelectorAll('.tries');
+  if (tries.length < 5) {
+    for (let i = 0; i < missed; i += 1) {
+      const ul = scoreboard.getElementsByTagName('ol')[0];
+      const li = document.createElement('li');
+      const img = document.createElement('img');
+      li.className = 'tries';
+      img.src = 'images/liveHeart.png';
+      img.height = '35';
+      img.width = '30';
+      li.appendChild(img);
+      ul.appendChild(li);
+    }
+  }
+  missed = 0;
+}
