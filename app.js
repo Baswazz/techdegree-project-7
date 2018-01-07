@@ -99,7 +99,7 @@ function resetPhrase() {
   const letters = qwerty.querySelectorAll('.chosen');
   for (let i = 0; i < letters.length; i += 1) {
     letters[i].setAttribute('class', '');
-    letters[i].disabled = 'false';
+    letters[i].removeAttribute('disabled');
   }
 
   // Clear phrase
